@@ -3,104 +3,385 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Media Downloader</title>
+    <title>Universal Media Downloader</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 40px auto;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             padding: 20px;
-            background-color: #f4f4f4;
-            color: #333;
         }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
         h1 {
+            color: #333;
             text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
         }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.95em;
+        }
+
+        .supported-platforms {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .platform-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
         input[type="text"] {
             width: 100%;
-            padding: 10px;
-            margin: 20px 0;
-            font-size: 16px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: border-color 0.3s;
         }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            margin-right: 10px;
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
         }
-        #results {
-            margin-top: 30px;
+
+        .format-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            justify-content: center;
         }
-        .format {
-            margin: 10px 0;
-            padding: 10px;
+
+        .format-option {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
             background: white;
-            border: 1px solid #ddd;
         }
-        a.download-link {
+
+        .format-option:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .format-option.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .format-icon {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+
+        .download-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .download-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .download-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .error {
+            background: #ffe0e0;
+            color: #d32f2f;
+            border-left: 4px solid #d32f2f;
+        }
+
+        .success {
+            background: #e0f7e0;
+            color: #2e7d32;
+            border-left: 4px solid #2e7d32;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .video-info {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .download-link {
             display: inline-block;
-            padding: 8px 16px;
-            background: #007bff;
+            margin-top: 15px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             text-decoration: none;
-            border-radius: 4px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: transform 0.2s;
         }
-        a.download-link:hover {
-            background: #0056b3;
+
+        .download-link:hover {
+            transform: scale(1.05);
         }
-        .note {
-            font-size: 14px;
-            color: #666;
-            margin-top: 40px;
+
+        .setup-guide {
+            margin-top: 20px;
+            padding: 20px;
+            background: #fff3cd;
+            border-radius: 10px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .setup-guide h3 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+
+        .server-input {
+            margin-top: 15px;
+        }
+
+        .server-input label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #856404;
+        }
+
+        .server-input input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
-    <h1>Media Downloader</h1>
-    <p>Paste a video URL (supports YouTube and many other sites via a free public API).</p>
-    <input type="text" id="urlInput" placeholder="https://www.youtube.com/watch?v=...">
-    <button onclick="fetchFormats()">Get Download Options</button>
-    <div id="results"></div>
-    <p class="note">
-        <strong>Note:</strong> This uses a third-party public API (loader.to) to fetch available formats. 
-        It works client-side in your browser for direct downloads where possible. 
-        Not all sites or formats are supported, and availability depends on the source platform. 
-        Use responsibly and respect copyright laws.
-    </p>
+    <div class="container">
+        <h1>📥 Media Downloader</h1>
+        <p class="subtitle">Your own private video downloader</p>
+
+        <div class="supported-platforms">
+            <span class="platform-badge">YouTube</span>
+            <span class="platform-badge">Instagram</span>
+            <span class="platform-badge">TikTok</span>
+            <span class="platform-badge">X (Twitter)</span>
+            <span class="platform-badge">Facebook</span>
+            <span class="platform-badge">Reddit</span>
+            <span class="platform-badge">Vimeo</span>
+            <span class="platform-badge">1000+ more</span>
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="urlInput" placeholder="Paste your video URL here...">
+        </div>
+
+        <div class="format-selector">
+            <div class="format-option active" data-format="video">
+                <div class="format-icon">🎬</div>
+                <div>Video + Audio</div>
+            </div>
+            <div class="format-option" data-format="audio">
+                <div class="format-icon">🎵</div>
+                <div>Audio Only (MP3)</div>
+            </div>
+        </div>
+
+        <button class="download-btn" id="downloadBtn">Download</button>
+
+        <div class="result" id="result"></div>
+
+        <div class="setup-guide">
+            <h3>🛠️ Backend Server URL</h3>
+            
+            <div class="server-input">
+                <label>Your Backend URL:</label>
+                <input type="text" id="serverUrl" placeholder="https://your-app.railway.app" value="http://localhost:3000">
+                <small style="color: #856404; display: block; margin-top: 5px;">After deploying to Railway, paste your URL here</small>
+            </div>
+        </div>
+    </div>
 
     <script>
-        async function fetchFormats() {
+        let selectedFormat = 'video';
+
+        document.querySelectorAll('.format-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.format-option').forEach(o => o.classList.remove('active'));
+                this.classList.add('active');
+                selectedFormat = this.dataset.format;
+            });
+        });
+
+        document.getElementById('downloadBtn').addEventListener('click', async function() {
             const url = document.getElementById('urlInput').value.trim();
+            const serverUrl = document.getElementById('serverUrl').value.trim();
+            const resultDiv = document.getElementById('result');
+            const btn = this;
+
             if (!url) {
-                alert('Please enter a URL');
+                showResult('error', '⚠️ Please enter a valid URL');
                 return;
             }
 
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = '<p>Loading formats...</p>';
+            if (!serverUrl) {
+                showResult('error', '⚠️ Please enter your backend server URL');
+                return;
+            }
+
+            btn.disabled = true;
+            resultDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Processing your request...</p></div>';
+            resultDiv.className = 'result show';
 
             try {
-                // Using a simple public downloader API that returns download buttons via iframe
-                // We embed multiple common formats
-                const formats = [
-                    {name: 'MP4 (Video)', code: 'mp4'},
-                    {name: 'MP3 (Audio Only)', code: 'mp3'},
-                    {name: 'WEBM (Video)', code: 'webm'},
-                    {name: 'Best Quality', code: 'best'}
-                ];
-
-                let html = '<h2>Available Formats:</h2>';
-                formats.forEach(fmt => {
-                    html += `<div class="format"><strong>${fmt.name}</strong><br>`;
-                    html += `<iframe style="height:50px; border:none; overflow:hidden;" 
-                             src="https://loader.to/api/button/?url=${encodeURIComponent(url)}&f=${fmt.code}" 
-                             loading="lazy"></iframe></div>`;
+                const response = await fetch(`${serverUrl}/api/get-link`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        url: url,
+                        format: selectedFormat
+                    })
                 });
 
-                resultsDiv.innerHTML = html;
+                if (!response.ok) {
+                    throw new Error('Server error. Make sure your backend is running on Railway!');
+                }
+
+                const data = await response.json();
+
+                if (data.success && data.downloadUrl) {
+                    showResult('success', `
+                        <div class="video-info">
+                            <h3>✅ Ready to Download!</h3>
+                            <p style="margin: 15px 0;">Your ${selectedFormat === 'audio' ? 'audio' : 'video'} is ready!</p>
+                            <a href="${data.downloadUrl}" class="download-link" download target="_blank">
+                                📥 Download ${selectedFormat === 'audio' ? 'MP3' : 'Video'}
+                            </a>
+                        </div>
+                    `);
+                } else {
+                    throw new Error('Failed to get download link');
+                }
             } catch (error) {
-                resultsDiv.innerHTML = '<p>Error fetching formats. Try another URL or check the link.</p>';
+                showResult('error', `
+                    <strong>❌ Error:</strong> ${error.message}
+                    <br><br>
+                    <strong>Make sure:</strong>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Your backend is deployed on Railway</li>
+                        <li>The server URL is correct</li>
+                        <li>yt-dlp is installed on Railway</li>
+                    </ul>
+                `);
+            } finally {
+                btn.disabled = false;
             }
+        });
+
+        function showResult(type, message) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = `result show ${type}`;
+            resultDiv.innerHTML = message;
         }
+
+        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('downloadBtn').click();
+            }
+        });
     </script>
 </body>
 </html>
