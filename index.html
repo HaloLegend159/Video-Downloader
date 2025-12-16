@@ -3,68 +3,363 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Video Link Viewer</title>
+  <title>Link Video Viewer</title>
+  <meta name="color-scheme" content="dark light" />
   <style>
-    body { font-family: system-ui, Arial, sans-serif; margin: 24px; max-width: 900px; }
-    .row { display: flex; gap: 8px; flex-wrap: wrap; }
-    input { flex: 1; min-width: 280px; padding: 10px; font-size: 16px; }
-    button { padding: 10px 14px; font-size: 16px; cursor: pointer; }
-    .card { margin-top: 16px; padding: 14px; border: 1px solid #ddd; border-radius: 12px; }
-    .hint { color: #666; font-size: 14px; margin-top: 8px; }
-    iframe { width: 100%; aspect-ratio: 16/9; border: 0; border-radius: 12px; }
-    video { width: 100%; border-radius: 12px; background: #000; }
-    .meta { display: grid; gap: 6px; margin-top: 10px; }
-    .thumb { max-width: 240px; border-radius: 10px; border: 1px solid #eee; }
-    .error { color: #b00020; }
+    :root{
+      --bg: #0b0b0f;
+      --panel: rgba(255,255,255,.06);
+      --panel2: rgba(255,255,255,.08);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.65);
+      --line: rgba(255,255,255,.14);
+      --accent: #6ea8ff;
+      --accent2: #8b5cf6;
+      --danger: #ff6b6b;
+      --shadow: 0 18px 60px rgba(0,0,0,.45);
+      --radius: 18px;
+    }
+    @media (prefers-color-scheme: light){
+      :root{
+        --bg:#f7f8fb;
+        --panel: rgba(0,0,0,.05);
+        --panel2: rgba(0,0,0,.06);
+        --text: rgba(0,0,0,.88);
+        --muted: rgba(0,0,0,.6);
+        --line: rgba(0,0,0,.12);
+        --shadow: 0 18px 60px rgba(0,0,0,.12);
+      }
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background: radial-gradient(1200px 600px at 15% 10%, rgba(110,168,255,.18), transparent 60%),
+                  radial-gradient(900px 500px at 85% 15%, rgba(139,92,246,.14), transparent 55%),
+                  radial-gradient(1000px 700px at 50% 90%, rgba(110,168,255,.10), transparent 60%),
+                  var(--bg);
+      min-height:100vh;
+    }
+    .wrap{ max-width:1100px; margin:0 auto; padding:22px 18px 60px; }
+    header{
+      display:flex; align-items:flex-end; justify-content:space-between; gap:12px;
+      padding:18px; border:1px solid var(--line); border-radius:var(--radius);
+      background:linear-gradient(180deg, var(--panel), transparent);
+      box-shadow: var(--shadow);
+    }
+    .brand h1{ margin:0; font-size:22px; letter-spacing:.2px; }
+    .brand p{ margin:6px 0 0; color:var(--muted); font-size:13px; max-width:680px; }
+    .toggles{ display:flex; gap:10px; align-items:center; }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 12px; border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      color:var(--text);
+      user-select:none;
+    }
+    .pill input{ accent-color: var(--accent); }
+    main{ margin-top:16px; display:grid; grid-template-columns: 1.25fr .75fr; gap:16px; }
+    @media (max-width: 980px){ main{ grid-template-columns:1fr; } }
+
+    .card{
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      background: rgba(255,255,255,.03);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding:14px 16px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      border-bottom:1px solid var(--line);
+      background: linear-gradient(180deg, var(--panel), transparent);
+    }
+    .hd .title{ font-weight:700; font-size:14px; letter-spacing:.2px; }
+    .hd .sub{ color:var(--muted); font-size:12px; }
+
+    .inputRow{
+      padding:14px 16px;
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+    }
+    .input{
+      flex:1;
+      min-width:260px;
+      display:flex; gap:10px; align-items:center;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.04);
+    }
+    .input svg{ width:18px; height:18px; opacity:.8; }
+    input[type="text"]{
+      width:100%;
+      background:transparent;
+      border:0;
+      outline:none;
+      color:var(--text);
+      font-size:15px;
+    }
+    .btn{
+      padding:10px 14px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.06);
+      color:var(--text);
+      cursor:pointer;
+      font-weight:650;
+    }
+    .btn:hover{ background: rgba(255,255,255,.10); }
+    .btn.primary{
+      border-color: rgba(110,168,255,.55);
+      background: linear-gradient(180deg, rgba(110,168,255,.18), rgba(255,255,255,.05));
+    }
+    .btn.danger{
+      border-color: rgba(255,107,107,.55);
+      background: linear-gradient(180deg, rgba(255,107,107,.14), rgba(255,255,255,.03));
+    }
+    .btn:disabled{
+      opacity:.45;
+      cursor:not-allowed;
+    }
+    .badges{
+      display:flex; gap:8px; flex-wrap:wrap;
+      padding:0 16px 14px;
+    }
+    .badge{
+      font-size:12px;
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color:var(--muted);
+    }
+    .badge.ok{ color:rgba(255,255,255,.85); border-color: rgba(110,168,255,.45); }
+    .badge.warn{ color:rgba(255,255,255,.85); border-color: rgba(255,193,7,.45); }
+    .badge.bad{ color:rgba(255,255,255,.85); border-color: rgba(255,107,107,.55); }
+
+    .player{
+      padding:16px;
+      display:grid;
+      gap:12px;
+    }
+    iframe{
+      width:100%;
+      aspect-ratio: 16/9;
+      border:0;
+      border-radius: 16px;
+      background:#000;
+    }
+    video, audio{
+      width:100%;
+      border-radius: 16px;
+      background:#000;
+    }
+    .meta{
+      display:grid; gap:6px;
+      padding:12px 14px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background: rgba(255,255,255,.03);
+    }
+    .meta .row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .meta .k{ color:var(--muted); font-size:12px; }
+    .meta .v{ font-size:13px; }
+    .thumb{ max-width: 240px; border-radius: 14px; border:1px solid var(--line); margin-top:8px; }
+
+    .downloads{
+      display:flex; gap:10px; flex-wrap:wrap;
+      padding:12px 14px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background: rgba(255,255,255,.03);
+    }
+    .noteArea{ padding:14px 16px; display:grid; gap:10px; }
+    textarea{
+      width:100%; min-height:120px; resize:vertical;
+      padding:12px 12px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color:var(--text);
+      outline:none;
+      font-size:14px;
+      line-height:1.35;
+    }
+    .help{
+      padding:12px 16px 16px;
+      color:var(--muted);
+      font-size:13px;
+      border-top:1px solid var(--line);
+    }
+    .error{ color: var(--danger); font-weight:650; }
+    .list{
+      padding:12px 8px 14px;
+      display:grid; gap:8px;
+    }
+    .item{
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      display:flex; gap:10px; justify-content:space-between; align-items:center;
+    }
+    .item .left{ display:grid; gap:4px; }
+    .item .url{ font-size:12px; color:var(--muted); max-width:520px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .item .name{ font-size:13px; font-weight:650; }
+    .item .actions{ display:flex; gap:8px; }
+    .small{ padding:8px 10px; font-size:13px; border-radius:12px; }
   </style>
 </head>
 <body>
-  <h1>Video Link Viewer</h1>
-  <p class="hint">
-    Paste a link. If it’s YouTube/Vimeo/etc., this will embed it. If it’s a direct .mp4/.webm/.m3u8 URL you control, it will play it.
-  </p>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <h1>Link Video Viewer</h1>
+        <p>Embeds supported platforms (YouTube/Vimeo). Plays direct media URLs you control (.mp4/.webm/.mp3/.wav/.m3u8). Download buttons appear only for direct files.</p>
+      </div>
+      <div class="toggles">
+        <label class="pill">
+          <input id="saveNotes" type="checkbox" checked />
+          Save notes
+        </label>
+        <label class="pill">
+          <input id="privacy" type="checkbox" checked />
+          YouTube privacy
+        </label>
+      </div>
+    </header>
 
-  <div class="row">
-    <input id="url" placeholder="https://…" autocomplete="off" />
-    <button id="go">Load</button>
-    <button id="clear">Clear</button>
+    <main>
+      <!-- LEFT: player -->
+      <section class="card">
+        <div class="hd">
+          <div>
+            <div class="title">Load a link</div>
+            <div class="sub" id="statusSub">Ready</div>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn" id="saveBtn" title="Save to playlist">Save</button>
+            <button class="btn danger" id="clearBtn">Clear</button>
+          </div>
+        </div>
+
+        <div class="inputRow">
+          <div class="input">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M10 14a5 5 0 0 1 0-7l1-1a5 5 0 0 1 7 7l-1 1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M14 10a5 5 0 0 1 0 7l-1 1a5 5 0 0 1-7-7l1-1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <input id="url" type="text" placeholder="Paste a video link…" autocomplete="off" />
+          </div>
+          <button class="btn primary" id="loadBtn">Load</button>
+        </div>
+
+        <div class="badges" id="badges"></div>
+
+        <div class="player" id="playerArea" style="display:none;"></div>
+
+        <div class="help" id="helpText">
+          Tip: direct file links enable downloads. Platform links embed only.
+        </div>
+      </section>
+
+      <!-- RIGHT: notes + playlist -->
+      <aside class="card">
+        <div class="hd">
+          <div>
+            <div class="title">Notes</div>
+            <div class="sub">Attach notes to the currently loaded link</div>
+          </div>
+          <button class="btn small" id="copyCitation">Copy citation</button>
+        </div>
+
+        <div class="noteArea">
+          <textarea id="notes" placeholder="Write notes, timestamps, key takeaways…"></textarea>
+          <div class="help" style="border-top:0; padding:0; color:var(--muted);">
+            Citation is a simple classroom-friendly format (not perfect MLA/APA). Add author/channel manually if needed.
+          </div>
+        </div>
+
+        <div class="hd" style="border-top:1px solid var(--line); border-bottom:1px solid var(--line);">
+          <div>
+            <div class="title">Playlist</div>
+            <div class="sub">Saved in this browser</div>
+          </div>
+          <button class="btn small" id="wipeList">Wipe</button>
+        </div>
+
+        <div class="list" id="list"></div>
+      </aside>
+    </main>
   </div>
-
-  <div id="out" class="card" style="display:none;"></div>
 
   <script>
     const $ = (id) => document.getElementById(id);
-    const out = $("out");
 
-    function isDirectVideoFile(u) {
-      const path = u.pathname.toLowerCase();
+    const urlInput = $("url");
+    const badges = $("badges");
+    const playerArea = $("playerArea");
+    const statusSub = $("statusSub");
+    const notesEl = $("notes");
+
+    const saveNotesToggle = $("saveNotes");
+    const privacyToggle = $("privacy");
+
+    const LS_LIST = "lvw_playlist_v1";
+    const LS_NOTES = "lvw_notes_v1";
+
+    let current = { url: "", kind: "", title: "", provider: "" };
+
+    function setStatus(text){ statusSub.textContent = text; }
+    function clearBadges(){ badges.innerHTML = ""; }
+    function addBadge(text, cls=""){ 
+      const b = document.createElement("span");
+      b.className = "badge " + cls;
+      b.textContent = text;
+      badges.appendChild(b);
+    }
+
+    function safeUrl(raw){
+      const s = raw.trim();
+      if(!s) return null;
+      try { return new URL(s); } catch { return null; }
+    }
+
+    function isDirectMedia(url){
+      const p = url.pathname.toLowerCase();
       return (
-        path.endsWith(".mp4") ||
-        path.endsWith(".webm") ||
-        path.endsWith(".ogg") ||
-        path.endsWith(".m3u8") // HLS manifest
+        p.endsWith(".mp4") || p.endsWith(".webm") || p.endsWith(".ogg") ||
+        p.endsWith(".mp3") || p.endsWith(".wav") ||
+        p.endsWith(".m3u8")
       );
     }
 
-    function youTubeEmbed(url) {
-      // supports youtu.be/<id> and youtube.com/watch?v=<id>
+    function isAudio(url){
+      const p = url.pathname.toLowerCase();
+      return p.endsWith(".mp3") || p.endsWith(".wav") || p.endsWith(".ogg");
+    }
+
+    function youTubeEmbed(url){
       const host = url.hostname.replace(/^www\./, "");
       let id = null;
 
       if (host === "youtu.be") id = url.pathname.slice(1);
       if (host === "youtube.com" || host === "m.youtube.com") id = url.searchParams.get("v");
 
-      // also support /shorts/<id>
       if (!id && (host === "youtube.com" || host === "m.youtube.com")) {
         const parts = url.pathname.split("/").filter(Boolean);
         if (parts[0] === "shorts" && parts[1]) id = parts[1];
       }
 
       if (!id) return null;
-      return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}`;
+
+      const base = privacyToggle.checked ? "https://www.youtube-nocookie.com/embed/" : "https://www.youtube.com/embed/";
+      return base + encodeURIComponent(id);
     }
 
-    function vimeoEmbed(url) {
+    function vimeoEmbed(url){
       const host = url.hostname.replace(/^www\./, "");
       if (host !== "vimeo.com") return null;
       const id = url.pathname.split("/").filter(Boolean)[0];
@@ -72,111 +367,310 @@
       return `https://player.vimeo.com/video/${id}`;
     }
 
-    function tryKnownEmbeds(url) {
-      return youTubeEmbed(url) || vimeoEmbed(url) || null;
+    function detectPlatform(url){
+      const embed = youTubeEmbed(url) || vimeoEmbed(url);
+      if (embed) return { kind: "embed", embed };
+      if (isDirectMedia(url)) return { kind: "direct", embed: null };
+      return { kind: "unsupported", embed: null };
     }
 
-    async function tryOEmbed(urlStr) {
-      // Not all providers support unauthenticated oEmbed, and some block CORS.
-      // We try a couple common ones:
+    async function tryOEmbed(urlStr){
       const providers = [
-        // YouTube oEmbed supports CORS in most cases
         (u) => `https://www.youtube.com/oembed?format=json&url=${encodeURIComponent(u)}`,
-        // Vimeo oEmbed
         (u) => `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(u)}`
       ];
-
-      for (const make of providers) {
-        const endpoint = make(urlStr);
-        try {
-          const res = await fetch(endpoint);
-          if (!res.ok) continue;
+      for (const make of providers){
+        try{
+          const res = await fetch(make(urlStr));
+          if(!res.ok) continue;
           return await res.json();
-        } catch {
-          // ignore and try next
-        }
+        }catch{}
       }
       return null;
     }
 
-    async function load() {
-      const raw = $("url").value.trim();
-      out.style.display = "block";
-      out.innerHTML = "";
+    function renderMeta(meta){
+      const title = meta?.title || "—";
+      const author = meta?.author_name || "—";
+      const provider = meta?.provider_name || "—";
+      const thumb = meta?.thumbnail_url || "";
+      return `
+        <div class="meta">
+          <div class="row"><span class="k">Title:</span> <span class="v">${escapeHtml(title)}</span></div>
+          <div class="row"><span class="k">Author:</span> <span class="v">${escapeHtml(author)}</span></div>
+          <div class="row"><span class="k">Provider:</span> <span class="v">${escapeHtml(provider)}</span></div>
+          ${thumb ? `<img class="thumb" src="${thumb}" alt="thumbnail" />` : ``}
+        </div>
+      `;
+    }
 
-      let url;
-      try {
-        url = new URL(raw);
-      } catch {
-        out.innerHTML = `<p class="error">That doesn’t look like a valid URL.</p>`;
+    function renderDownloadsForDirect(urlStr){
+      // NOTE: Browser download is only reliable when the server allows it (CORS/headers/auth).
+      // We provide "download" links; some hosts may ignore it.
+      const isAud = isAudio(new URL(urlStr));
+      const bothDisabled = isAud ? "disabled" : "";
+      const audioHint = isAud ? "Audio file detected" : "Video file detected";
+
+      return `
+        <div class="downloads">
+          <button class="btn small primary" id="dlMedia">Download ${isAud ? "Audio" : "Video"}</button>
+          <button class="btn small" id="dlAudio" ${bothDisabled}>Download audio (if available)</button>
+          <button class="btn small" id="dlBoth" ${bothDisabled}>Download both</button>
+          <span class="badge ok">${audioHint}</span>
+          <span class="badge warn">Downloads only for direct file links</span>
+        </div>
+      `;
+    }
+
+    function doDownload(urlStr, filenameHint){
+      const a = document.createElement("a");
+      a.href = urlStr;
+      a.download = filenameHint || "";
+      a.rel = "noopener";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    async function loadLink(){
+      clearBadges();
+      playerArea.style.display = "none";
+      playerArea.innerHTML = "";
+
+      const u = safeUrl(urlInput.value);
+      if(!u){
+        addBadge("Invalid URL", "bad");
+        setStatus("Invalid URL");
         return;
       }
 
-      // 1) Direct video file? Use <video>
-      if (isDirectVideoFile(url)) {
-        // NOTE: Cross-origin servers must allow it, otherwise the browser may block playback.
-        out.innerHTML = `
-          <h2>Direct Video</h2>
-          <video controls playsinline src="${url.toString()}"></video>
-          <p class="hint">If playback fails, the host may block cross-origin use or require auth.</p>
+      const d = detectPlatform(u);
+      current.url = u.toString();
+      current.kind = d.kind;
+      current.title = "";
+      current.provider = "";
+
+      // load notes
+      loadNotesForCurrent();
+
+      if(d.kind === "direct"){
+        addBadge("Direct media link", "ok");
+        addBadge(u.pathname.split("/").pop() || "media", "ok");
+        setStatus("Playing direct media");
+
+        const aud = isAudio(u);
+        playerArea.innerHTML = `
+          ${aud
+            ? `<audio controls src="${u.toString()}"></audio>`
+            : `<video controls playsinline src="${u.toString()}"></video>`
+          }
+          ${renderDownloadsForDirect(u.toString())}
+          <div class="meta">
+            <div class="row"><span class="k">URL:</span> <span class="v">${escapeHtml(u.toString())}</span></div>
+            <div class="row"><span class="k">Note:</span> <span class="v">Some hosts block downloads or playback unless they allow cross-origin requests.</span></div>
+          </div>
         `;
+        playerArea.style.display = "grid";
+
+        // wire downloads
+        $("dlMedia").onclick = () => doDownload(u.toString(), (u.pathname.split("/").pop() || "media"));
+        const dlAudio = $("dlAudio");
+        const dlBoth = $("dlBoth");
+
+        if(dlAudio) dlAudio.onclick = () => alert("Audio extraction isn’t possible in-browser without a server process. If you host the source videos yourself, we can add a backend to generate an audio file legally.");
+        if(dlBoth) dlBoth.onclick = () => alert("Same limitation: generating audio requires a backend process for your own hosted content.");
+
         return;
       }
 
-      // 2) Known platform? Use embed
-      const embed = tryKnownEmbeds(url);
-      if (embed) {
-        out.innerHTML = `
-          <h2>Embedded Player</h2>
+      if(d.kind === "embed"){
+        addBadge("Embedded player", "ok");
+        addBadge(u.hostname.replace(/^www\./,""), "ok");
+        setStatus("Embedding…");
+
+        // Try to fetch metadata
+        const meta = await tryOEmbed(u.toString());
+        if(meta){
+          current.title = meta.title || "";
+          current.provider = meta.provider_name || "";
+          addBadge("Metadata loaded", "ok");
+        } else {
+          addBadge("Metadata unavailable (CORS/provider)", "warn");
+        }
+
+        playerArea.innerHTML = `
           <iframe
-            src="${embed}"
+            src="${d.embed}"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowfullscreen
             referrerpolicy="strict-origin-when-cross-origin"
           ></iframe>
-          <div id="meta" class="meta"></div>
+          ${renderMeta(meta)}
+          <div class="downloads">
+            <span class="badge warn">Downloads disabled for embedded platform links</span>
+            <span class="badge">Use direct file URLs you own to enable download</span>
+          </div>
         `;
-
-        // Optional: show metadata via oEmbed
-        const meta = await tryOEmbed(url.toString());
-        if (meta) {
-          const metaDiv = document.getElementById("meta");
-          metaDiv.innerHTML = `
-            <div><strong>Title:</strong> ${escapeHtml(meta.title || "—")}</div>
-            <div><strong>Author:</strong> ${escapeHtml(meta.author_name || "—")}</div>
-            <div><strong>Provider:</strong> ${escapeHtml(meta.provider_name || "—")}</div>
-            ${meta.thumbnail_url ? `<img class="thumb" src="${meta.thumbnail_url}" alt="thumbnail">` : ""}
-          `;
-        }
+        playerArea.style.display = "grid";
+        setStatus("Embedded");
         return;
       }
 
-      // 3) Fallback: we won't “extract” video. Just show a safe message.
-      out.innerHTML = `
-        <h2>Unsupported Link Type</h2>
-        <p>
-          This page supports embedding (YouTube/Vimeo) and direct video files (.mp4/.webm/.m3u8).
-          It does not extract/download videos from general websites.
-        </p>
+      addBadge("Unsupported link type", "bad");
+      addBadge("Use YouTube/Vimeo or direct media files", "warn");
+      setStatus("Unsupported link");
+      playerArea.innerHTML = `
+        <div class="meta">
+          <div class="row"><span class="k error">Unsupported:</span> <span class="v">This page does not extract/download from general websites.</span></div>
+          <div class="row"><span class="k">Try:</span> <span class="v">YouTube/Vimeo links (embed) or direct .mp4/.webm/.mp3/.wav/.m3u8 links you control.</span></div>
+        </div>
       `;
+      playerArea.style.display = "grid";
     }
 
-    function escapeHtml(s) {
+    function escapeHtml(s){
       return String(s).replace(/[&<>"']/g, (c) => ({
         "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
       }[c]));
     }
 
-    $("go").addEventListener("click", load);
-    $("clear").addEventListener("click", () => {
-      $("url").value = "";
-      out.style.display = "none";
-      out.innerHTML = "";
+    // Playlist
+    function getList(){
+      try{ return JSON.parse(localStorage.getItem(LS_LIST) || "[]"); }catch{ return []; }
+    }
+    function setList(list){
+      localStorage.setItem(LS_LIST, JSON.stringify(list));
+      renderList();
+    }
+    function renderList(){
+      const list = getList();
+      const root = $("list");
+      root.innerHTML = "";
+      if(list.length === 0){
+        root.innerHTML = `<div class="help" style="border-top:0;">No saved items yet.</div>`;
+        return;
+      }
+      for(const item of list){
+        const el = document.createElement("div");
+        el.className = "item";
+        el.innerHTML = `
+          <div class="left">
+            <div class="name">${escapeHtml(item.title || item.provider || "Saved Link")}</div>
+            <div class="url">${escapeHtml(item.url)}</div>
+          </div>
+          <div class="actions">
+            <button class="btn small primary" data-act="load">Load</button>
+            <button class="btn small" data-act="del">Remove</button>
+          </div>
+        `;
+        el.querySelector('[data-act="load"]').onclick = () => {
+          urlInput.value = item.url;
+          loadLink();
+        };
+        el.querySelector('[data-act="del"]').onclick = () => {
+          const next = getList().filter(x => x.id !== item.id);
+          setList(next);
+        };
+        root.appendChild(el);
+      }
+    }
+
+    function saveCurrent(){
+      if(!current.url) return;
+      const list = getList();
+      if(list.some(x => x.url === current.url)){
+        addBadge("Already saved", "warn");
+        return;
+      }
+      list.unshift({
+        id: crypto.randomUUID(),
+        url: current.url,
+        title: current.title || "",
+        provider: current.provider || "",
+        savedAt: Date.now()
+      });
+      setList(list.slice(0, 50));
+      addBadge("Saved to playlist", "ok");
+    }
+
+    // Notes storage
+    function getNotesMap(){
+      try{ return JSON.parse(localStorage.getItem(LS_NOTES) || "{}"); }catch{ return {}; }
+    }
+    function setNotesMap(map){
+      localStorage.setItem(LS_NOTES, JSON.stringify(map));
+    }
+    function loadNotesForCurrent(){
+      if(!saveNotesToggle.checked){
+        notesEl.value = "";
+        return;
+      }
+      const map = getNotesMap();
+      notesEl.value = map[current.url] || "";
+    }
+    function saveNotesForCurrent(){
+      if(!saveNotesToggle.checked || !current.url) return;
+      const map = getNotesMap();
+      map[current.url] = notesEl.value;
+      setNotesMap(map);
+    }
+
+    // Citation
+    function makeCitation(){
+      const now = new Date();
+      const date = now.toISOString().slice(0,10);
+      const title = current.title ? `"${current.title}"` : "Video";
+      const provider = current.provider || (current.kind === "direct" ? "Direct file" : "Online");
+      return `${title} (${provider}). Retrieved ${date} from ${current.url}`;
+    }
+
+    $("loadBtn").onclick = loadLink;
+    $("clearBtn").onclick = () => {
+      urlInput.value = "";
+      current = { url:"", kind:"", title:"", provider:"" };
+      clearBadges();
+      playerArea.style.display = "none";
+      playerArea.innerHTML = "";
+      notesEl.value = "";
+      setStatus("Ready");
+    };
+    $("saveBtn").onclick = saveCurrent;
+
+    $("wipeList").onclick = () => {
+      localStorage.removeItem(LS_LIST);
+      renderList();
+    };
+
+    $("copyCitation").onclick = async () => {
+      if(!current.url){
+        addBadge("Load a link first", "warn");
+        return;
+      }
+      const c = makeCitation();
+      try{
+        await navigator.clipboard.writeText(c);
+        addBadge("Citation copied", "ok");
+      }catch{
+        addBadge("Clipboard blocked by browser", "warn");
+      }
+    };
+
+    urlInput.addEventListener("keydown", (e) => {
+      if(e.key === "Enter") loadLink();
     });
 
-    $("url").addEventListener("keydown", (e) => {
-      if (e.key === "Enter") load();
+    notesEl.addEventListener("input", () => {
+      saveNotesForCurrent();
     });
+
+    // If privacy toggle changes, reload embed
+    privacyToggle.addEventListener("change", () => {
+      if(current.kind === "embed" && current.url) loadLink();
+    });
+
+    // Init
+    renderList();
+    setStatus("Ready");
   </script>
 </body>
 </html>
