@@ -214,43 +214,12 @@
         .download-link:hover {
             transform: scale(1.05);
         }
-
-        .setup-guide {
-            margin-top: 20px;
-            padding: 20px;
-            background: #fff3cd;
-            border-radius: 10px;
-            border-left: 4px solid #ffc107;
-        }
-
-        .setup-guide h3 {
-            color: #856404;
-            margin-bottom: 15px;
-        }
-
-        .server-input {
-            margin-top: 15px;
-        }
-
-        .server-input label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #856404;
-        }
-
-        .server-input input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>📥 Media Downloader</h1>
-        <p class="subtitle">Your own private video downloader</p>
+        <p class="subtitle">Download videos and audio from any platform</p>
 
         <div class="supported-platforms">
             <span class="platform-badge">YouTube</span>
@@ -281,20 +250,11 @@
         <button class="download-btn" id="downloadBtn">Download</button>
 
         <div class="result" id="result"></div>
-
-        <div class="setup-guide">
-            <h3>🛠️ Backend Server URL</h3>
-            
-            <div class="server-input">
-                <label>Your Backend URL:</label>
-                <input type="text" id="serverUrl" placeholder="https://your-app.railway.app" value="video-downloader-production-c5ae.up.railway.app">
-                <small style="color: #856404; display: block; margin-top: 5px;">After deploying to Railway, paste your URL here</small>
-            </div>
-        </div>
     </div>
 
     <script>
         let selectedFormat = 'video';
+        const serverUrl = 'https://video-downloader-production-c5ae.up.railway.app';
 
         document.querySelectorAll('.format-option').forEach(option => {
             option.addEventListener('click', function() {
@@ -306,17 +266,11 @@
 
         document.getElementById('downloadBtn').addEventListener('click', async function() {
             const url = document.getElementById('urlInput').value.trim();
-            const serverUrl = document.getElementById('serverUrl').value.trim();
             const resultDiv = document.getElementById('result');
             const btn = this;
 
             if (!url) {
                 showResult('error', '⚠️ Please enter a valid URL');
-                return;
-            }
-
-            if (!serverUrl) {
-                showResult('error', '⚠️ Please enter your backend server URL');
                 return;
             }
 
@@ -337,7 +291,7 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('Server error. Make sure your backend is running on Railway!');
+                    throw new Error('Server error. Please try again.');
                 }
 
                 const data = await response.json();
@@ -356,16 +310,7 @@
                     throw new Error('Failed to get download link');
                 }
             } catch (error) {
-                showResult('error', `
-                    <strong>❌ Error:</strong> ${error.message}
-                    <br><br>
-                    <strong>Make sure:</strong>
-                    <ul style="margin-left: 20px; margin-top: 10px;">
-                        <li>Your backend is deployed on Railway</li>
-                        <li>The server URL is correct</li>
-                        <li>yt-dlp is installed on Railway</li>
-                    </ul>
-                `);
+                showResult('error', `❌ Error: ${error.message}<br><br>Make sure the URL is valid and the video is publicly accessible.`);
             } finally {
                 btn.disabled = false;
             }
