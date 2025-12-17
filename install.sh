@@ -1,0 +1,5 @@
+#!/bin/bash
+apt-get update
+apt-get install -y python3 python3-pip ffmpeg
+pip3 install yt-dlp
+npm install
